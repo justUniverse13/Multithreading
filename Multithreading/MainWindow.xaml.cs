@@ -19,6 +19,7 @@ namespace Multithreading
         }
 
         public MyQueue<int> secondThreadQueue = new MyQueue<int>();
+        public MyQueue<int> thirdThreadQueue = new MyQueue<int>();
 
         private void StartFirstThread_Click(object sender, RoutedEventArgs e)
         {
@@ -38,38 +39,65 @@ namespace Multithreading
 
         private void GenerateNumbersByFirstThread()
         {
-            for (int i = 0; ; i++)
+            try
             {
-                this.Dispatcher.Invoke((Action)(() =>
+                for (int i = 0; ; i++)
                 {
-                    FirstThreadListBox.Items.Add(i);
-                    if (i >= queueLength)
+                    this.Dispatcher.Invoke((Action)(() =>
                     {
-                        secondThreadQueue.Dequeue();
-                        SecondThreadListBox.Items.Add(i);
-                        SecondThreadListBox.Items.Remove(i-20);
-                        secondThreadQueue.Enqueue(i);
-                    }
-                    else
-                    {
-                       secondThreadQueue.Enqueue(i);
-                       SecondThreadListBox.Items.Add(secondThreadQueue.Last);
-                    }
-                }));
-                Thread.Sleep(1000);
+                        FirstThreadListBox.Items.Add(i);
+                        if (secondThreadQueue.Count >= queueLength)
+                        {
+                            thirdThreadQueue.Enqueue(secondThreadQueue.First);
+                            secondThreadQueue.Dequeue();
+                            SecondThreadListBox.Items.Add(i);
+                            SecondThreadListBox.Items.Remove(i - 20);
+                            secondThreadQueue.Enqueue(i);
+                        }
+                        else
+                        {
+                            secondThreadQueue.Enqueue(i);
+                            SecondThreadListBox.Items.Add(secondThreadQueue.Last);
+                        }
+                    }));
+                    Thread.Sleep(1000);
+                }
+                
             }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
         }  
 
         private void GetOldestValueFromQueue()
         {
-            for(; ; )
+            try
             {
-                this.Dispatcher.Invoke((Action)(() =>
+                for (; ; )
                 {
-                    ThirdThreadListBox.Items.Add(secondThreadQueue.Last);
-                }));
-                Thread.Sleep(1000);
+                    this.Dispatcher.Invoke((Action)(() =>
+                    {
+                    if (thirdThreadQueue.Count.Equals(0))
+                        {
+                            ThirdThreadListBox.Items.Add("Second Queue is not full");
+                        }
+                        else
+                        {
+                            ThirdThreadListBox.Items.Add(thirdThreadQueue.Last);
+                        }
+                    }));
+                    Thread.Sleep(1000);
+                }
             }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
+         
         }
 
         private void StartThirdThread_Click(object sender, RoutedEventArgs e)
